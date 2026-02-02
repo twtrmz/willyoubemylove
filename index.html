@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Be My Valentine</title>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #fdeff0; /* light pink background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  /* Card container */
+  #card {
+    background: #fff;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    text-align: center;
+    max-width: 450px;
+    position: relative;
+  }
+  h1 {
+    font-size: 1.6em;
+    margin-bottom: 20px;
+    color: #e74c3c;
+  }
+  /* Buttons styling */
+  button {
+    margin: 8px;
+    padding: 12px 26px;
+    font-size: 1em;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  #yesBtn, #finalYesBtn {
+    background-color: #e74c3c; /* red */
+    color: #fff;
+  }
+  #yesBtn:hover, #finalYesBtn:hover {
+    background-color: #c0392b;
+  }
+  #noBtn {
+    background-color: #95a5a6; /* grey */
+    color: #fff;
+    position: relative;
+  }
+  #noBtn:hover {
+    background-color: #7f8c8d;
+  }
+  /* GIF container hidden by default */
+  #gifContainer {
+    display: none;
+    margin-top: 20px;
+  }
+  #gifContainer img {
+    max-width: 250px;
+    border-radius: 8px;
+  }
+  /* Quiz container */
+  #quizContainer {
+    display: none;
+    margin-top: 20px;
+  }
+  #quizContainer p {
+    margin: 10px 0;
+  }
+  #answerInput {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 80%;
+    max-width: 300px;
+  }
+  #submitAnswerBtn {
+    background-color: #3498db;
+    color: #fff;
+    margin-top: 10px;
+  }
+  #submitAnswerBtn:hover {
+    background-color: #2980b9;
+  }
+  #feedbackMsg {
+    color: #e74c3c;
+  }
+  /* Final message */
+  #finalMessage {
+    display: none;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+  <div id="card">
+    <h1>Vuoi essere il mio Valentino?</h1>
+    <div id="buttonContainer">
+      <button id="yesBtn">Sì</button>
+      <button id="noBtn">No</button>
+    </div>
+    <div id="gifContainer">
+      <p style="font-size:1.2em; color:#e74c3c;">Grazie! Ti amo!</p>
+      <!-- Replace the GIF URL below with any cute GIF you like -->
+      <img src="https://media.giphy.com/media/14udF3WUwwGMaA/giphy.gif" alt="Cute Valentine GIF" />
+    </div>
+    <div id="quizContainer">
+      <p id="quizPrompt" style="font-weight:bold;">Supera queste prove per convincermi che è un no</p>
+      <p id="currentQuestion"></p>
+      <input type="text" id="answerInput" placeholder="La tua risposta" />
+      <br/>
+      <button id="submitAnswerBtn">Invia</button>
+      <p id="feedbackMsg"></p>
+    </div>
+    <div id="finalMessage">
+      <p style="font-size:1.2em; color:#e74c3c;">Credi davvero di avere avuto scelta? 😈</p>
+      <h1>Vuoi essere il mio Valentino?</h1>
+      <button id="finalYesBtn">Sì</button>
+    </div>
+  </div>
+
+<script>
+  const yesBtn = document.getElementById('yesBtn');
+  const noBtn = document.getElementById('noBtn');
+  const finalYesBtn = document.getElementById('finalYesBtn');
+  const gifContainer = document.getElementById('gifContainer');
+  const buttonContainer = document.getElementById('buttonContainer');
+  const quizContainer = document.getElementById('quizContainer');
+  const currentQuestionEl = document.getElementById('currentQuestion');
+  const answerInput = document.getElementById('answerInput');
+  const submitAnswerBtn = document.getElementById('submitAnswerBtn');
+  const feedbackMsg = document.getElementById('feedbackMsg');
+  const finalMessage = document.getElementById('finalMessage');
+
+  // For the No button movement control
+  let moveCount = 0;
+  const maxMoves = Math.floor(Math.random() * 3) + 3; // random between 3 and 5
+  let canMove = true;
+
+  noBtn.addEventListener('mouseenter', () => {
+    if (!canMove) return;
+    moveCount++;
+    if (moveCount >= maxMoves) {
+      // stop moving after reaching limit
+      canMove = false;
+      noBtn.style.position = 'static';
+      return;
+    }
+    // Move within the card boundaries so the button stays visible
+    const card = document.getElementById('card');
+    const maxX = card.clientWidth - noBtn.offsetWidth;
+    const maxY = card.clientHeight - noBtn.offsetHeight;
+    const randomX = Math.random() * maxX;
+    const randomY = Math.random() * maxY;
+    noBtn.style.position = 'absolute';
+    noBtn.style.left = randomX + 'px';
+    noBtn.style.top = randomY + 'px';
+  });
+
+  // When Yes is clicked, show GIF and hide buttons
+  yesBtn.addEventListener('click', () => {
+    gifContainer.style.display = 'block';
+    buttonContainer.style.display = 'none';
+  });
+
+  // Final Yes replicates original yes
+  finalYesBtn.addEventListener('click', () => {
+    gifContainer.style.display = 'block';
+    finalMessage.style.display = 'none';
+  });
+
+  // When No is clicked after movement, start quiz
+  noBtn.addEventListener('click', () => {
+    if (canMove) return; // ignore if still moving
+    buttonContainer.style.display = 'none';
+    quizContainer.style.display = 'block';
+    loadQuestion();
+  });
+
+  // Define tasks for quiz
+  const secretNumber = Math.floor(Math.random() * 5) + 1;
+  const tasks = [
+    { question: 'Quanto fa 12 × 7?', answer: '84' },
+    { question: "Scrivi la parola 'no' al contrario", answer: 'on' },
+    { question: "Quante lettere ci sono nella parola 'amore'?", answer: '5' },
+    { question: 'Indovina il numero segreto tra 1 e 5', answer: String(secretNumber) },
+    { question: "Qual è la prima lettera della parola 'Valentino'?", answer: 'V' }
+  ];
+  let currentIndex = 0;
+
+  function loadQuestion() {
+    currentQuestionEl.textContent = tasks[currentIndex].question;
+    answerInput.value = '';
+    feedbackMsg.textContent = '';
+  }
+
+  submitAnswerBtn.addEventListener('click', () => {
+    const userAnswer = answerInput.value.trim();
+    if (userAnswer.toLowerCase() === tasks[currentIndex].answer.toLowerCase()) {
+      currentIndex++;
+      if (currentIndex >= tasks.length) {
+        // All tasks completed
+        quizContainer.style.display = 'none';
+        finalMessage.style.display = 'block';
+      } else {
+        loadQuestion();
+      }
+    } else {
+      feedbackMsg.textContent = 'Risposta sbagliata, riprova!';
+    }
+  });
+</script>
+</body>
+</html>
